@@ -1,7 +1,7 @@
+import math
 maxprims=0
 maxa=0
 maxb=0
-
 for a in range(-1000,1000):
     print(a)
     for b in range(-1000,1000):
@@ -10,9 +10,10 @@ for a in range(-1000,1000):
         inc=0
         while bol==0:
             num=inc*inc+a*inc+b
-            for i in range(2,int(num/2)):
-                if (num/i)%1==0:
+            for i in range(2,int(num/3+1)):
+                if (num/i)%1==0 | num<0:
                     bol=1
+                    
             inc+=1
         inc-=1
         if maxprims<inc:
