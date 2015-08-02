@@ -1,0 +1,5 @@
+um python Scripte von NP++ mit richtigem Pfad auszuführen:
+
+cmd /k cd /d "$(CURRENT_DIRECTORY)" & "C:\Python34\python.exe" -i "$(FULL_CURRENT_PATH)"
+
+lalala
