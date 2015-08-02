@@ -1,13 +1,17 @@
 import math
-prims=[]
-for i in range(1,1000000):
+prims=[2,3]
+for i in range(5,1000000):
     prim=1
-    for j in range(2,int(math.sqrt(i))+1):
-        if (i/j)%1==0:
+    maxRange = math.sqrt(i)+1
+    for j in prims:
+        if j >= maxRange:
+            break
+        if (i%j)==0:
             prim=0
             break
     if prim==1:
-        prims.append(str(i))
-f = open("prims below one million.txt",'w')
-f.write(" ".join(prims))
-f.close()
+        prims.append(i)
+print("done")
+#f = open("prims below one million.txt",'w')
+#f.write(" ".join(prims))
+#f.close()
