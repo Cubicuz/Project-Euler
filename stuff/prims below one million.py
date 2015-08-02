@@ -8,6 +8,7 @@ for i in range(1,1000000):
             break
     if prim==1:
         prims.append(str(i))
-f = open("prims below one million.txt",'w')
-f.write(" ".join(prims))
-f.close()
+print("done generating")
+#f = open("prims below one million.txt",'w')
+#f.write(" ".join(prims))
+#f.close()
