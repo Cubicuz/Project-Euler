@@ -34,7 +34,7 @@ consecutiveCounter=0
 print("start while")
 while cont==1 and i < 500:
     i +=1
-    print('i {}'.format(i))
+#    print('i {}'.format(i))
     if i in primsSet:
         consecutiveCounter=0
         continue
@@ -42,7 +42,7 @@ while cont==1 and i < 500:
     #calculate prime factors
     primeFactors = []
     for j in primNumbrs:
-        print("j {}".format(j))
+#        print("j {}".format(j))
         # wenn j > wurzel der Zahl können wir aufhören nach primfaktoren zu suchen
         if j > math.sqrt(i)+2:
             break
@@ -76,7 +76,7 @@ while cont==1 and i < 500:
                 break
         if consecutiveCounter > 3:
             #found it
-            break
+            break #break aus großer while
     factn3 = factn2
     factn2 = factn1
     factn1 = primeFactors
