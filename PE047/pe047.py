@@ -22,21 +22,29 @@ primNumbrs = []
 for nmbr in prims:
     primsSet.add(int(nmbr))
     primNumbrs.append(int(nmbr))
-    
-i = 3
+primsSet.remove(1)
+primNumbrs.remove(1)
+primNumbrs.sort()
+factn1 = []
+factn2 = []
+factn3 = []
+i = 15
 cont = 1
-consecutiveCounter=1
-while cont==1 and i < 1000000:
+consecutiveCounter=0
+print("start while")
+while cont==1 and i < 500:
     i +=1
+    print('i {}'.format(i))
     if i in primsSet:
-        consecutiveCounter=1
+        consecutiveCounter=0
         continue
 
     #calculate prime factors
     primeFactors = []
     for j in primNumbrs:
+        print("j {}".format(j))
         # wenn j > wurzel der Zahl können wir aufhören nach primfaktoren zu suchen
-        if j > math.sqrt(i)+1:
+        if j > math.sqrt(i)+2:
             break
 
         potenz = 1
@@ -51,7 +59,33 @@ while cont==1 and i < 1000000:
 
     #check prime factors
     if len(primeFactors) != 4:
+        consecutiveCounter=0
         continue
+
+    consecutiveCounter +=1
+    if consecutiveCounter > 3:
+        for nmbr in primeFactors:
+            if nmbr in factn1:
+                consecutiveCounter = 1
+                break
+            if nmbr in factn2:
+                consecutiveCounter = 2
+                break
+            if nmbr in factn3:
+                consecutiveCounter = 3
+                break
+        if consecutiveCounter > 3:
+            #found it
+            break
+    factn3 = factn2
+    factn2 = factn1
+    factn1 = primeFactors
+
+
     
     
-    
+print("done")
+print('{} : {}'.format(i-3, primeFactors))
+print('{} : {}'.format(i-3, factn1))
+print('{} : {}'.format(i-3, factn2))
+print('{} : {}'.format(i-3, factn3))
