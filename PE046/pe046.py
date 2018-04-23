@@ -37,4 +37,4 @@ while cont==1:
     if canBeWritten == 0:
         cont = 0
         print('its this {}'.format(i))
-        
+#done        
