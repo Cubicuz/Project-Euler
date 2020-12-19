@@ -10,4 +10,23 @@
 #(not necessarily adjacent digits) with the same digit, is part of an eight prime value family.
 
 
-#thoughts: the last digit cant change because it needs to be odd
+# thoughts:
+# the last digit cant change because it needs to be odd
+
+# find next prime
+# store it in primes
+# go down the stored primes and check if it fullfills the requirement with another prime
+#     check their pattern and increment it
+#     if the pattern is by 8, you are done
+
+# check pattern:
+# least significant digit musst be equal
+# then go digit by digit to most significant
+# if digits are unequal first time store the one on the left and the right
+# if digits are unequal again compair if both sides are equal to their stored ones
+# build a regex of the match (123*56**89)
+# if the regex is in the dict:
+#     increment its key,
+#     check if key == 8
+# else store it with 2
+
