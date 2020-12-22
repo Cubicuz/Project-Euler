@@ -17,7 +17,8 @@
 # store it in primes
 # go down the stored primes and check if it fullfills the requirement with another prime
 #     check their pattern and increment it
-#     if the pattern is by 8, you are done
+#     if the pattern is by 1+1+2+3+4+5+6+7, then there are 8 numbers
+#     so 1+1+2+3+4+5+6+1 is sufficient (23)
 
 # check pattern:
 # least significant digit musst be equal
@@ -28,5 +29,115 @@
 # if the regex is in the dict:
 #     increment its key,
 #     check if key == 8
-# else store it with 2
+# else store it with 1
 
+import bisect
+
+def sameLength(a, b):
+    while (a > 0 and b > 0):
+        a = a // 10
+        b = b // 10
+    return (a == 0 and b == 0)
+
+def getPattern(a, b):
+    if (a%10 != b%10): # least significant digit musst be equal
+        return None
+
+    sa = str(a)
+    sb = str(b)
+
+    pattern = ""
+    differentNumbers = ""
+    for i in range(len(sa)-1):
+        if (sa[i] == sb[i]):
+            pattern += sa[i]
+        else:
+            if differentNumbers == "":
+                differentNumbers = sa[i] + sb[i]
+            else:
+                if differentNumbers != sa[i] + sb[i]:
+                    return None
+            pattern += "*"
+    return pattern + sa[-1]
+
+import math
+prims = [2, 3, 5, 7]
+primsLenIndex = []
+def getNextPrime():
+    isprim = False
+    nextPrim = prims[-1]
+    while not isprim:
+        nextPrim += 2
+        for prim in prims:
+            if nextPrim % prim == 0:
+                isprim = False
+                break
+            if prim > math.sqrt(nextPrim):
+                isprim = True
+                break
+    prims.append(nextPrim)
+    return nextPrim
+
+def preparePrimes():
+    prim = getNextPrime()
+    for i in range(1, 7):
+        while (prim < 10**i):
+            prim = getNextPrime()
+        primsLenIndex.append(len(prims)-1)
+
+def testPreparePrimes():
+    preparePrimes()
+    print("Number of primes: ", len(prims))
+    for i in primsLenIndex:
+        print("Index: ", i)
+        print("Prime bevore: ", prims[i-1])
+        print("Prime after: ", prims[i])
+
+#testPreparePrimes()
+    
+def isFinalPattern(pattern):
+    cnt = 0
+    for i in range(10):
+        number = int(pattern.replace('*', str(i)))
+        if number == prims[bisect.bisect_left(prims, number)]:
+            cnt += 1
+    if cnt >= 8:
+        print(pattern, "saves the day")
+        for i in range(10):
+            number = int(pattern.replace('*', str(i)))
+            if number in prims:
+                print(number)
+                return True
+    return False
+        
+
+patterns = {}
+
+def findGoldenPattern():
+
+    for i in range(len(primsLenIndex)-1):
+        for j in range(primsLenIndex[i], primsLenIndex[i+1]):
+            #print(prims[j])
+            if prims[j] > 300000:
+                return ""
+            for k in range(primsLenIndex[i], j):
+                pattern = getPattern(prims[k], prims[j])
+                if pattern is not None:
+                    if pattern in patterns:
+                        patterns[pattern] += 1
+                        if patterns[pattern] == 4:
+                            if pattern[0] == "*":
+                                print("pattern", pattern)
+                                if isFinalPattern(pattern):
+                                    return pattern
+                    else:
+                        patterns[pattern] = 1
+
+
+def main():
+    preparePrimes()
+    pattern = findGoldenPattern()
+
+#main()
+import cProfile
+cProfile.run('main()')
