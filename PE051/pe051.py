@@ -33,32 +33,54 @@
 
 import bisect
 
-def sameLength(a, b):
-    while (a > 0 and b > 0):
-        a = a // 10
-        b = b // 10
-    return (a == 0 and b == 0)
-
 def getPattern(a, b):
     if (a%10 != b%10): # least significant digit musst be equal
         return None
 
-    sa = str(a)
-    sb = str(b)
-
-    pattern = ""
-    differentNumbers = ""
-    for i in range(len(sa)-1):
-        if (sa[i] == sb[i]):
-            pattern += sa[i]
+    da = a % 10
+    a = a // 10
+    db = b % 10
+    b = b // 10
+    pattern = []
+    differentNumbers = 0
+    while True:
+        if da == db:
+            pattern.append(str(da))
         else:
-            if differentNumbers == "":
-                differentNumbers = sa[i] + sb[i]
+            if differentNumbers == 0:
+                differentNumbers = da*10 + db
             else:
-                if differentNumbers != sa[i] + sb[i]:
+                if differentNumbers != da*10 + db:
                     return None
-            pattern += "*"
-    return pattern + sa[-1]
+            pattern.append("*")
+
+        if a == 0:
+            pattern.reverse()
+            return "".join(pattern)
+
+        da = a % 10
+        a = a // 10
+        db = b % 10
+        b = b // 10
+
+def getPatternSubtraction(a, b):
+    diff = a - b
+    while diff != 0:
+        pass
+
+    
+def testGetPattern():
+  print(getPattern(234277212, 234299212))
+  print(getPattern(1331, 1221))
+  print(getPattern(102121, 105151))
+  print(getPattern(102121, 105151))
+  print(getPattern(16661, 13631))
+  print(getPattern(12221, 13341))
+  
+  exit()
+
+#testGetPattern()
+  
 
 import math
 prims = [2, 3, 5, 7]
