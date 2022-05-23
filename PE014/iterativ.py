@@ -1,6 +1,10 @@
+#!/bin/python3
+
+cache=dict()
+
 maxseq=0
 maxstart=0
-for i in range(2,1000000):
+for i in range(2,1_000_000):
     curseq=0
     curnumb=i
     while curnumb>1:
