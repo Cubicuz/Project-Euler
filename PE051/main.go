@@ -16,13 +16,13 @@ var indexOfLastPrime uint64
 const minimumDigitsForPrime = 3
 
 func main() {
-	primes = make([]uint64, 10_000_000)
+	primes = make([]uint64, 100_000_000)
 	primes[0] = 2
 	indexOfLastPrime = 0
 	numberOfInterestingPrimes := 0
 	var i uint64
-	for i = 3; i < 150_000_000; i += 2 {
-		if isPrime(i, true) && i > 10000 && isInteresting(i) {
+	for i = 3; i < 1500_000_000; i += 2 {
+		if isPrimeBuildCache(i, true) && i > 10000 && isInteresting(i) {
 			numberOfInterestingPrimes++
 		}
 	}
@@ -39,7 +39,7 @@ func main() {
 	}
 }
 
-func isPrime(n uint64, add bool) bool {
+func isPrimeBuildCache(n uint64, add bool) bool {
 	sqrt := math.Sqrt(float64(n))
 	isPrime := true
 	i := 0
@@ -55,6 +55,10 @@ func isPrime(n uint64, add bool) bool {
 		primes[indexOfLastPrime] = n
 	}
 	return isPrime
+}
+
+func isPrime(n uint64) bool {
+	return isPrimeBuildCache(n, false)
 }
 
 func isInteresting(n uint64) bool {
@@ -92,7 +96,12 @@ func evaluateInterestingPrime(n uint64) bool {
 	}
 	for j := range 3 {
 		if digits[j] >= minimumDigitsForPrime {
-			if iterateOverPossibleIterations(nBackup, nAsDigits, j) {
+			if iterateOverPossibleCombinations3(nBackup, nAsDigits, j) {
+				return true
+			}
+		}
+		if digits[j] >= 6 {
+			if iterateOverPossibleCombinations6(nBackup, nAsDigits, j) {
 				return true
 			}
 		}
@@ -100,7 +109,7 @@ func evaluateInterestingPrime(n uint64) bool {
 	return false
 }
 
-func iterateOverPossibleIterations(n uint64, nAsDigits []int, goldenDigit int) bool {
+func iterateOverPossibleCombinations3(n uint64, nAsDigits []int, goldenDigit int) bool {
 	goldenIndex := make([]int, 0)
 	for j := 1; j < len(nAsDigits); j++ {
 		if nAsDigits[j] == goldenDigit {
@@ -119,8 +128,35 @@ func iterateOverPossibleIterations(n uint64, nAsDigits []int, goldenDigit int) b
 	n1 := len(goldenIndex)
 	hasNextCombo := true
 	for hasNextCombo {
-		if testIndexes(n, goldenIndex, comb, goldenDigit) {
-			fmt.Printf("meh %v\n", n) // do more permutations
+		if testPrimeWithPattern(n, goldenIndex, comb, goldenDigit, isPrime) {
+			fmt.Printf("found %v\n", n) // do more permutations
+			return true
+		}
+		hasNextCombo, comb = next_comb(comb, k, n1)
+	}
+	return false
+}
+func iterateOverPossibleCombinations6(n uint64, nAsDigits []int, goldenDigit int) bool {
+	goldenIndex := make([]int, 0)
+	for j := 1; j < len(nAsDigits); j++ {
+		if nAsDigits[j] == goldenDigit {
+			goldenIndex = append(goldenIndex, j)
+		}
+	}
+
+	// iterate over the possible combinations
+
+	comb := make([]int, 6)
+	for i := range 6 {
+		comb[i] = i
+	}
+
+	k := 6
+	n1 := len(goldenIndex)
+	hasNextCombo := true
+	for hasNextCombo {
+		if testPrimeWithPattern(n, goldenIndex, comb, goldenDigit, isPrime) {
+			fmt.Printf("found %v\n", n) // do more permutations
 			return true
 		}
 		hasNextCombo, comb = next_comb(comb, k, n1)
@@ -128,7 +164,7 @@ func iterateOverPossibleIterations(n uint64, nAsDigits []int, goldenDigit int) b
 	return false
 }
 
-func testIndexes(n uint64, goldenIndex []int, comb []int, goldenDigit int) bool {
+func testPrimeWithPattern(n uint64, goldenIndex []int, comb []int, goldenDigit int, isPrime func(uint64) bool) bool {
 	add := uint64(0)
 
 	for i := range comb {
@@ -136,18 +172,23 @@ func testIndexes(n uint64, goldenIndex []int, comb []int, goldenDigit int) bool 
 	}
 
 	fails := goldenDigit
-	for fails < 4 {
+	i := goldenDigit
+	for fails < 2 && i < 10 {
 		n += add
-		if !isPrime(n, false) {
+		if !isPrime(n) {
 			fails++
 		}
+		i++
 
 	}
-	return fails < 4
+	if fails < 2 {
+		fmt.Printf("fails %v for prime %v\n", fails, n)
+	}
+	return fails < 2
 }
 
-func shift(i int) int {
-	result := 1
+func shift(i int) uint64 {
+	result := uint64(1)
 	for j := 0; j < i; j++ {
 		result *= 10
 	}
