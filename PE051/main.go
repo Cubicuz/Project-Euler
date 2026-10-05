@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 // thoughts:
@@ -10,24 +15,17 @@ import (
 // the number musst contain at least three times 0, 1 or 2
 // I search for such primes and check them
 
-var primes []uint64
-var indexOfLastPrime uint64
+var primes []int
+var indexOfLastPrime int
 
 const minimumDigitsForPrime = 3
 
 func main() {
-	primes = make([]uint64, 100_000_000)
-	primes[0] = 2
-	indexOfLastPrime = 0
-	numberOfInterestingPrimes := 0
-	var i uint64
-	for i = 3; i < 1500_000_000; i += 2 {
-		if isPrimeBuildCache(i, true) && i > 10000 && isInteresting(i) {
-			numberOfInterestingPrimes++
-		}
-	}
-	fmt.Printf("primecount: %v\n", indexOfLastPrime+1)
-	fmt.Printf("interestingCount: %v\n", numberOfInterestingPrimes)
+	// do performance testing, count nanoseconds for all of this
+
+	loadPrimes(primePath)
+
+	fmt.Printf("primecount: %v\n", len(primes))
 
 	for j := 1000; j < len(primes); j++ {
 		if isInteresting(primes[j]) {
@@ -39,32 +37,122 @@ func main() {
 	}
 }
 
-func isPrimeBuildCache(n uint64, add bool) bool {
+func CalcAndStorePrimes() {
+	primes = make([]int, 100_000_000)
+	primes[0] = 2
+	indexOfLastPrime = 0
+	i := 3
+	for indexOfLastPrime < len(primes)-1 {
+		isPrimeBuildCache(i)
+		i += 2
+	}
+	storePrimes(primePath)
+
+}
+
+const primePath = "./primes.csv"
+
+func storePrimes(path string) {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		fmt.Println("cant open file")
+		os.Exit(-1)
+	}
+	defer file.Close()
+	j := 0
+	for i := 0; i < len(primes)-1; i++ {
+		file.WriteString(fmt.Sprint(primes[i]) + ",")
+		j++
+		if j > 1000 {
+			file.WriteString("\n")
+			j = 0
+		}
+	}
+	file.WriteString(fmt.Sprint(primes[len(primes)-1]))
+
+}
+
+func loadPrimes(path string) {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDONLY, 0666)
+	if err != nil {
+		fmt.Println("cant open file")
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	//primes = make([]int, 0, 100_000_000)
+	primes = make([]int, 0)
+
+	for scanner.Scan() {
+		line := strings.Split(scanner.Text(), ",")
+		for l := range line {
+			if line[l] != "" {
+				n, err := strconv.Atoi(line[l])
+				if err != nil {
+					fmt.Printf("something is wrong with '%s' in the line '%s' ", scanner.Text(), line[l])
+				} else {
+					primes = append(primes, n)
+				}
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
+}
+
+// store this as csv
+func isPrimeBuildCache(n int) bool {
 	sqrt := math.Sqrt(float64(n))
 	isPrime := true
 	i := 0
-	for primes[i] < uint64(sqrt) {
+	for primes[i] < int(sqrt) {
 		if n%primes[i] == 0 {
 			isPrime = false
 			break
 		}
 		i++
 	}
-	if isPrime && add {
+	if isPrime {
 		indexOfLastPrime++
-		primes[indexOfLastPrime] = n
+		if indexOfLastPrime < len(primes) {
+			primes[indexOfLastPrime] = n
+		} else {
+			primes = append(primes, n)
+		}
 	}
 	return isPrime
 }
 
-func isPrime(n uint64) bool {
-	return isPrimeBuildCache(n, false)
+func isPrime(n int) bool {
+	index := sort.SearchInts(primes, n)
+	if index >= len(primes) {
+		// calculate more primes
+		i := primes[len(primes)-1]
+		isNPrime := false
+		for i < n {
+			addedNewPrime := false
+			for !addedNewPrime {
+				i += 2
+				addedNewPrime = isPrimeBuildCache(i)
+				if i == n {
+					isNPrime = addedNewPrime
+				}
+			}
+		}
+		return isNPrime
+	}
+
+	if primes[index] == n {
+		return true
+	}
+	return false
 }
 
-func isInteresting(n uint64) bool {
-	// last digit is not interesting
+func isInteresting(n int) bool {
+	// least significant digit is not interesting
 	n = n / 10
-	digits := make([]uint64, 10)
+	digits := make([]int, 10)
 
 	for n > 0 {
 		digit := n % 10
@@ -78,7 +166,7 @@ func isInteresting(n uint64) bool {
 }
 
 // this function has to be refactored
-func evaluateInterestingPrime(n uint64) bool {
+func evaluateInterestingPrime(n int) bool {
 	digits := make([]int, 10)
 	nAsDigits := make([]int, 0)
 	nBackup := n
@@ -109,7 +197,7 @@ func evaluateInterestingPrime(n uint64) bool {
 	return false
 }
 
-func iterateOverPossibleCombinations3(n uint64, nAsDigits []int, goldenDigit int) bool {
+func iterateOverPossibleCombinations3(n int, nAsDigits []int, goldenDigit int) bool {
 	goldenIndex := make([]int, 0)
 	for j := 1; j < len(nAsDigits); j++ {
 		if nAsDigits[j] == goldenDigit {
@@ -136,7 +224,7 @@ func iterateOverPossibleCombinations3(n uint64, nAsDigits []int, goldenDigit int
 	}
 	return false
 }
-func iterateOverPossibleCombinations6(n uint64, nAsDigits []int, goldenDigit int) bool {
+func iterateOverPossibleCombinations6(n int, nAsDigits []int, goldenDigit int) bool {
 	goldenIndex := make([]int, 0)
 	for j := 1; j < len(nAsDigits); j++ {
 		if nAsDigits[j] == goldenDigit {
@@ -164,16 +252,16 @@ func iterateOverPossibleCombinations6(n uint64, nAsDigits []int, goldenDigit int
 	return false
 }
 
-func testPrimeWithPattern(n uint64, goldenIndex []int, comb []int, goldenDigit int, isPrime func(uint64) bool) bool {
-	add := uint64(0)
-
+func testPrimeWithPattern(n int, goldenIndex []int, comb []int, goldenDigit int, isPrime func(int) bool) bool {
+	add := 0
+	nOrig := n
 	for i := range comb {
-		add += uint64(shift(goldenIndex[comb[i]]))
+		add += shift(goldenIndex[comb[i]])
 	}
 
 	fails := goldenDigit
 	i := goldenDigit
-	for fails < 2 && i < 10 {
+	for fails < 3 && i < 9 {
 		n += add
 		if !isPrime(n) {
 			fails++
@@ -181,14 +269,21 @@ func testPrimeWithPattern(n uint64, goldenIndex []int, comb []int, goldenDigit i
 		i++
 
 	}
-	if fails < 2 {
-		fmt.Printf("fails %v for prime %v\n", fails, n)
+	if fails < 3 {
+		n = nOrig
+		fmt.Printf("fails %v pattern %v\nPrime: %v\n", fails, add, n)
+		for i := goldenDigit; i < 9; i++ {
+			n = n + add
+			if isPrime(n) {
+				fmt.Printf("Prime: %v\n", n)
+			}
+		}
 	}
-	return fails < 2
+	return fails == 2
 }
 
-func shift(i int) uint64 {
-	result := uint64(1)
+func shift(i int) int {
+	result := 1
 	for j := 0; j < i; j++ {
 		result *= 10
 	}

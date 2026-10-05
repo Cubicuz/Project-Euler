@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func expectInteresting(t *testing.T, n uint64) {
+func expectInteresting(t *testing.T, n int) {
 	if !isInteresting(n) {
 		t.Errorf("Expected interesting for %v", n)
 	}
 }
-func expectBoring(t *testing.T, n uint64) {
+func expectBoring(t *testing.T, n int) {
 	if isInteresting(n) {
 		t.Errorf("Expected boring for %v", n)
 	}
@@ -70,16 +70,16 @@ func TestGenerationOfCombinations(t *testing.T) {
 }
 
 func TestPatternGeneration(t *testing.T) {
-	dummyIsPrimeN := []uint64{}
+	dummyIsPrimeN := []int{}
 	dummyIsPrimeRetVal := true
-	dummyIsPrime := func(n uint64) bool {
+	dummyIsPrime := func(n int) bool {
 		dummyIsPrimeN = append(dummyIsPrimeN, n)
 		return dummyIsPrimeRetVal
 	}
 
 	retval := testPrimeWithPattern(10100101, []int{1, 3, 4, 6}, []int{0, 1, 2}, 0, dummyIsPrime)
 
-	expectedIsPrimeVals := []uint64{10111111, 10122121, 10133131, 10144141, 10155151, 10166161, 10177171, 10188181, 10199191}
+	expectedIsPrimeVals := []int{10111111, 10122121, 10133131, 10144141, 10155151, 10166161, 10177171, 10188181, 10199191}
 
 	if !retval {
 		t.Error("expected retval to be true")
@@ -94,7 +94,7 @@ func TestPatternGeneration(t *testing.T) {
 
 func TestShifting(t *testing.T) {
 	input := []int{0, 1, 2, 3, 10}
-	expectedOutput := []uint64{1, 10, 100, 1000, 1_00000_00000}
+	expectedOutput := []int{1, 10, 100, 1000, 1_00000_00000}
 
 	for i := range input {
 		if shift(input[i]) != expectedOutput[i] {
@@ -107,5 +107,45 @@ func TestStuff(t *testing.T) {
 	comb := []int{3, 4, 5}
 	for i := range comb {
 		fmt.Println(i)
+	}
+}
+
+func TestIsPrime(t *testing.T) {
+	testPrimes := []int{3, 5, 7, 11, 13, 17}
+	notPrimes := []int{2, 4, 9, 15, 21}
+	primes = testPrimes
+	indexOfLastPrime = len(primes) - 1
+
+	for i := range testPrimes {
+		if !isPrime(testPrimes[i]) {
+			t.Errorf("Expected %v to be prime", testPrimes[i])
+		}
+	}
+
+	for i := range notPrimes {
+		if isPrime(notPrimes[i]) {
+			t.Errorf("Expected %v not to be prime", notPrimes[i])
+		}
+	}
+	if primes[len(primes)-1] != 23 {
+		t.Error("Expected prime array to grow due to requesting a bigger number")
+	}
+
+}
+
+func TestStoreAndLoad(t *testing.T) {
+	primePath := "./testprimes.csv"
+	testNumbers := make([]int, 2000)
+	for i := range testNumbers {
+		testNumbers[i] = i
+	}
+	primes = testNumbers
+	storePrimes(primePath)
+	primes = make([]int, 0)
+	loadPrimes(primePath)
+	for i := range testNumbers {
+		if testNumbers[i] != primes[i] {
+			t.Error("load and store problem")
+		}
 	}
 }
